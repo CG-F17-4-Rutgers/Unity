@@ -4,6 +4,8 @@ using UnityEngine.AI;
 
 [RequireComponent (typeof (NavMeshAgent))]
 [RequireComponent (typeof (Animator))]
+
+// Handles animation logic for an animated character. Requires a separate script for NavMeshAgent logic.
 public class TestLocomotionAgent : MonoBehaviour {
 	Animator anim;
 	NavMeshAgent agent;
@@ -39,6 +41,8 @@ public class TestLocomotionAgent : MonoBehaviour {
 
 		// Update animation parameters
 		anim.SetBool("move", shouldMove);
+		Debug.Log (velocity.magnitude);
+		anim.SetFloat ("Speed", velocity.magnitude);
 		anim.SetFloat ("Horizontal", velocity.x);
 		anim.SetFloat ("Vertical", velocity.y);
 

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+// Handles NavMeshAgent logic
 public class Agent : MonoBehaviour {
 
 	private NavMeshAgent agent;
 	private Vector3 offset_y = new Vector3 (0.0f, 1.0f, 0.0f); // check presence of other agents at an offset height of 1
 	public static bool active = false;
-	private bool running = false;
+	// private bool running = false;
 
 	// Use this for initialization
 	void Start () {
