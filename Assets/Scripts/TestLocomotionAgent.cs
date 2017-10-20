@@ -39,8 +39,8 @@ public class TestLocomotionAgent : MonoBehaviour {
 
 		// Update animation parameters
 		anim.SetBool("move", shouldMove);
-		anim.SetFloat ("velx", velocity.x);
-		anim.SetFloat ("vely", velocity.y);
+		anim.SetFloat ("Horizontal", velocity.x);
+		anim.SetFloat ("Vertical", velocity.y);
 
 		// GetComponent<LookAt>().lookAtTargetPosition = agent.steeringTarget + transform.forward;
 	}
