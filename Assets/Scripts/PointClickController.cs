@@ -32,11 +32,13 @@ public class PointClickController : MonoBehaviour {
 		{
 			if (Physics.Raycast (ray, out hit, raycastDistance))
 			{
-				if (hit.collider.CompareTag ("Character"))
-				{
+				if (hit.collider.CompareTag ("Character")) {
 					GameObject selectedGameObject = hit.transform.gameObject;
-					selectedGameObject.SendMessage ("toggleActive");
+					//selectedGameObject.SendMessage ("toggleActive");
 					activeGameObject = (activeGameObject == null ? selectedGameObject : null);
+					print ("SELECTED CHARACTER");
+				} else {
+					print ("Missed");
 				}
 			}
 		}
@@ -48,6 +50,7 @@ public class PointClickController : MonoBehaviour {
 			{
 				if (activeGameObject != null)
 				{
+
 					activeGameObject.SendMessage ("moveTo", hit.point);
 				}
 			}

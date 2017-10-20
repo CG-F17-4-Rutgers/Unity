@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 // Handles NavMeshAgent logic
 public class Agent : MonoBehaviour {
@@ -9,11 +10,13 @@ public class Agent : MonoBehaviour {
 	private NavMeshAgent agent;
 	private Vector3 offset_y = new Vector3 (0.0f, 1.0f, 0.0f); // check presence of other agents at an offset height of 1
 	public static bool active = false;
+	public Slider slide; 	
 	// private bool running = false;
 
 	// Use this for initialization
 	void Start () {
 		agent = GetComponent<NavMeshAgent> ();
+		agent.speed = 2;
 	}
 	
 	// Update is called once per frame
@@ -46,9 +49,9 @@ public class Agent : MonoBehaviour {
 		agent.isStopped = false;
 	}
 
-	public void setMaxSpeed(float speed)
+	public void setMaxSpeed()
 	{
-		agent.speed = speed;
+		agent.speed = slide.value;
 	}
 
 	// Check the destination of agent and redirect destination if it is occupied by a stationary agent
@@ -68,7 +71,7 @@ public class Agent : MonoBehaviour {
 				// Redirect to a destination just short of the old one.
 				Vector3 opposite = agent.destination - agent.gameObject.transform.position;
 				agent.destination = agent.destination - (0.8f * opposite.normalized);
-				agent.Resume ();
+				agent.isStopped = false;
 
 			}
 		}

@@ -5,9 +5,10 @@ using UnityEngine;
 public class IsoCameraController : MonoBehaviour {
 
 	public Camera cam;
+	public GameObject player;
 	private Transform g_cam;
 
-	private Vector3 isoForward = new Vector3(1.0f, 0.0f, 1.0f);
+	//private Vector3 isoForward = new Vector3(1.0f, 0.0f, 1.0f);
 	private float ANGLE_PI_DIV_4 = 45 * Mathf.Deg2Rad;
 
 	public int panSpeed;
@@ -35,6 +36,7 @@ public class IsoCameraController : MonoBehaviour {
 		// Zooming
 		float inputScroll = Input.GetAxis ("Mouse ScrollWheel") * scrollSpeed;
 		g_cam.Translate (new Vector3 (0, 0, inputScroll) * Time.deltaTime, Space.Self);
+		//g_cam.LookAt (player.transform);
 
 		// WARNING: Floating point errors may result in accumulating errors of camera angle.
 		// TODO: Regularly adjust camera transform LookAt to maintain isometric angle.
