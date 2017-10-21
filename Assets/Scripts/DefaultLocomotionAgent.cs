@@ -1,6 +1,7 @@
 ﻿// LocomotionSimpleAgent.cs
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 [RequireComponent (typeof (NavMeshAgent))]
 [RequireComponent (typeof (Animator))]
@@ -12,12 +13,14 @@ public class DefaultLocomotionAgent : MonoBehaviour {
 	NavMeshAgent agent;
 	Vector2 smoothDeltaPosition = Vector2.zero;
 	Vector2 velocity = Vector2.zero;
+	bool jumping = false;
 
 	private readonly int m_HashHorizontalPara = Animator.StringToHash ("Horizontal");
 	private readonly int m_HashVerticalPara = Animator.StringToHash ("Vertical");
 	private readonly int m_HashMovingPara = Animator.StringToHash ("Moving");
 	private readonly int m_HashRunningPara = Animator.StringToHash ("Running");
 	private readonly int m_HashSpeedPara= Animator.StringToHash ("Speed");
+	private readonly int m_HashJumpPara= Animator.StringToHash ("Jump");
 
 
 	void Start ()
@@ -59,6 +62,27 @@ public class DefaultLocomotionAgent : MonoBehaviour {
 			anim.SetBool (m_HashRunningPara, false);
 		}
 		// GetComponent<LookAt>().lookAtTargetPosition = agent.steeringTarget + transform.forward;
+
+		//Jump?
+		/*if (!jumping) {
+			if (agent.isOnOffMeshLink) {
+				if (Vector3.Magnitude (agent.transform.position - agent.destination) > 1.0f) {
+					jumping = true;
+					anim.SetTrigger (m_HashJumpPara);
+					StartCoroutine (WaitForAnimation ());
+					agent.autoTraverseOffMeshLink = true;
+					agent.isStopped = false;
+					jumping = false;
+					agent.autoTraverseOffMeshLink = false;
+				}
+			}
+		}*/
+	}
+
+	private IEnumerator WaitForAnimation ()
+	{
+		yield return new WaitForSeconds (0.5f);
+
 	}
 
 	void OnAnimatorMove ()

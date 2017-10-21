@@ -37,8 +37,6 @@ public class PointClickController : MonoBehaviour {
 					//selectedGameObject.SendMessage ("toggleActive");
 					activeGameObject = (activeGameObject == null ? selectedGameObject : null);
 					print ("SELECTED CHARACTER");
-				} else {
-					print ("Missed");
 				}
 			}
 		}
