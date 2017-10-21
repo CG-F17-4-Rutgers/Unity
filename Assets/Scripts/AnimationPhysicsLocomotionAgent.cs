@@ -1,38 +1,41 @@
 ﻿// LocomotionSimpleAgent.cs
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using System.Collections.Generic;
-
 [RequireComponent (typeof (NavMeshAgent))]
 [RequireComponent (typeof (Animator))]
 
-// This class enables animation-physics managed navigation. (B2 Extra Credit 2)
-// The NavMeshAgent is disabled on the prefab, the animations' physics do all the work of moving
-// the agent, while following a list of points designated by the NavMeshPath
-// Attach as a component of an animated character with a NavMeshAgent.
+
+/* This class enables animation-physics managed navigation. (B2 Extra Credit 2)
+ * The NavMeshAgent is disabled on the prefab, the animations' physics do all the work of moving
+ * the agent, while following a list of points designated by the NavMeshPath
+ * Attach as a component of an animated character with a NavMeshAgent. */
+
 public class AnimationPhysicsLocomotionAgent : MonoBehaviour {
+	public static bool active = false;  // is character selected?
+
 	Animator anim;
 	private NavMeshAgent agent;
-//	Vector2 smoothDeltaPosition = Vector2.zero;
-//	Vector2 velocity = Vector2.zero;
-
-	// Threshold for character divergence from linear path.
-	// If distance of character from the line connecting the previous path point and next path point
-	// exceeds this threshold, a new path will be calculated, as encouraged by needNewPath().
-	float RECALCULATE_THRESHOLD = 5.0f;
-
-	// Adjustable speed of character
-	float userInputSpeed = 1.0f; // TODO: For catmull-rom we will know this based on time curve
-
-	List<Vector3> path;
-	// keep track of how many points in the path have been passed. store index of next path point
-	// we have to hold onto these points to derive splines.
-	// and we have to know from where to delete when we find a new path.
+	bool moving;
+	List<Vector3> path;                 // store points from navmeshpath
 	int indexOfNextPathPoint;
+	Vector3 lastPosition;               // character's last position
+	float RECALCULATE_THRESHOLD = 5.0f; // threshold for character divergence from linear path
+	private readonly float ANGLE_PI_DIV_4 = 45.0f * Mathf.Deg2Rad; // 45deg
+	private readonly float ANGLE_TWO_PI = 2.0f * Mathf.PI;
 
-	Vector3 lastPosition; // keep track of last position to check if we have passed a path point
+	public Slider slide;                // adjustable speed of character
+	float userInputSpeed = 1.0f;
 
-	public static bool active = false;
+	// Animator Controller parameters
+	private readonly int m_HashHorizontalPara = Animator.StringToHash ("Horizontal");
+	private readonly int m_HashVerticalPara = Animator.StringToHash ("Vertical");
+	private readonly int m_HashMovingPara = Animator.StringToHash ("Moving");
+	private readonly int m_HashRunningPara = Animator.StringToHash ("Running");
+	private readonly int m_HashSpeedPara = Animator.StringToHash ("Speed");
+	private readonly int m_HashTurningPara = Animator.StringToHash ("Turning");
+
 
 	void Start ()
 	{
@@ -42,6 +45,7 @@ public class AnimationPhysicsLocomotionAgent : MonoBehaviour {
 		agent.updatePosition = false;
 		lastPosition = transform.position;
 	}
+
 
 	void Update ()
 	{
@@ -70,39 +74,90 @@ public class AnimationPhysicsLocomotionAgent : MonoBehaviour {
 
 		// GetComponent<LookAt>().lookAtTargetPosition = agent.steeringTarget + transform.forward;
 
-		agent.enabled = true;
-
-		bool shouldMove = agent.remainingDistance > agent.radius;
-		if (shouldMove)
+		if (moving)
 		{
-			// Recalculate new path to destination if necessary
-			if (needNewPath ())
+			agent.enabled = true;
+			float remainingDistance = Vector3.Magnitude(agent.destination - transform.position);
+			bool atDestination = remainingDistance < agent.radius;
+			if (agent.pathPending)
 			{
-				NavMeshPath navMeshPath = new NavMeshPath();
-				agent.CalculatePath(agent.destination, navMeshPath);
-				List<Vector3> path = new List<Vector3>(navMeshPath.corners);
-				indexOfNextPathPoint = 1;
+				Debug.Log ("Path Pending.");
+			}
+			else if (atDestination)
+			{
+				Debug.Log ("Stopping");
+				anim.SetBool (m_HashMovingPara, false);
+				anim.SetBool (m_HashTurningPara, false);
+				moving = false;
+			}
+			else
+			{
+				if (needNewPath ())
+				{
+					calculateNewPath (agent.destination);
+				}
+				else
+				{
+					lastPosition = transform.position;
+					Vector3 nextDirection = Vector3.Normalize(path[indexOfNextPathPoint] - transform.position);
+					Quaternion rotationToNextPoint = Quaternion.FromToRotation (transform.forward, nextDirection);
+					Vector3 nextDirectionLocal = rotationToNextPoint * Vector3.forward;
+					float angleToNextPoint = rotationToNextPoint.eulerAngles.y; // [0.0f, 360.0f]
+					if (angleToNextPoint > 180.0f)
+						angleToNextPoint = -(360 - angleToNextPoint);
+					Debug.Log (angleToNextPoint);
+					bool turning = Mathf.Abs (angleToNextPoint) >= 45.0f;
+					// need to rotate nextDirection by negative of agent's facing direction.
+
+					// Update animation parameters
+					anim.SetBool  (m_HashMovingPara, !turning);
+					anim.SetBool  (m_HashTurningPara, turning);
+					anim.SetFloat (m_HashHorizontalPara, nextDirectionLocal.x);
+					anim.SetFloat (m_HashVerticalPara, nextDirectionLocal.z);
+					anim.SetFloat (m_HashSpeedPara, userInputSpeed);
+
+					if (anim.GetFloat (m_HashSpeedPara) > 3.5f)
+						anim.SetBool (m_HashRunningPara, true);
+					else
+						anim.SetBool (m_HashRunningPara, false);
+					
+				}
 			}
 
-			lastPosition = transform.position;
-			Vector3 nextDirection = Vector3.Normalize(path[indexOfNextPathPoint] - transform.position);
-
-			// anim.SetBool ("Move", shouldMove);
-			anim.SetFloat ("Speed", userInputSpeed);
-			anim.SetFloat ("Horizontal", nextDirection.x);
-			anim.SetFloat ("Vertical", nextDirection.z);
+			// agent.enabled = false;
 		}
-
-		agent.enabled = false;
-
 
 	}
 
 	public void moveTo(Vector3 destination)
 	{
+		Debug.Log ("MoveTo message received");
 		agent.enabled = true;
-		agent.destination = destination;
-		agent.enabled = false;
+		agent.transform.position = transform.position;
+		calculateNewPath (destination);
+		Debug.Log ("agent destination: " + agent.destination);
+		agent.speed = slide.value;
+		moving = true;
+		agent.isStopped = true;
+	}
+
+	private void calculateNewPath(Vector3 targetPosition)
+	{
+		Debug.Log ("Calculating new path");
+		agent.destination = targetPosition;
+		NavMeshPath navMeshPath = new NavMeshPath();
+		agent.CalculatePath(targetPosition, navMeshPath);
+		path = new List<Vector3>(navMeshPath.corners);
+		Debug.Log ("Path of " + path.Count + " points generated.");
+		printPath ();
+		indexOfNextPathPoint = 1;
+	}
+
+	private void printPath()
+	{
+		Debug.Log ("Path points: ");
+		foreach (Vector3 point in path)
+			Debug.Log(point);
 	}
 
 	// Selects this agent.
@@ -121,23 +176,33 @@ public class AnimationPhysicsLocomotionAgent : MonoBehaviour {
 
 	void OnAnimatorMove ()
 	{
-		// Update position to agent position
-		// transform.position = agent.nextPosition;
+		// Update position based on animation movement
+		Vector3 position = anim.rootPosition;
+		Quaternion rotation = anim.rootRotation;
+		transform.position = position;
+		transform.rotation = rotation;
+		// position.y = agent.nextPosition.y; // may not look good for jumps
 
-		// Update position based on animation movement using navigation surface height
-//		Vector3 position = anim.rootPosition;
-//		position.y = agent.nextPosition.y; // may not look good for jumps
-//		transform.position = position;
-
-		// Test if we've passed the next corner point in the last movement
-		if (Vector3.Magnitude(transform.position - lastPosition) > Vector3.Magnitude(path[indexOfNextPathPoint] - lastPosition))
+		if (moving)
 		{
-			indexOfNextPathPoint++;
+			// Pull agent towards character
+			Vector3 agentDeltaPosition = agent.nextPosition - transform.position;
+			if (agentDeltaPosition.magnitude > agent.radius)
+				agent.nextPosition = transform.position + 0.9f*agentDeltaPosition;
+
+			// Test if we're close to the next corner point or have passed it in the last movement
+
+			if (Vector3.Magnitude(transform.position - lastPosition) > Vector3.Magnitude(path[indexOfNextPathPoint] - lastPosition))
+				indexOfNextPathPoint++;
 		}
+
 	}
 
 	bool needNewPath()
 	{
+		if (agent.pathPending)
+			return false;
+		
 		if (path == null)
 			return true; // trivially need a new path
 		else if (indexOfNextPathPoint >= path.Count)
@@ -149,7 +214,7 @@ public class AnimationPhysicsLocomotionAgent : MonoBehaviour {
 			 * 
 			 * It's possible that the character has gone too far from the straight line connecting
 			 * the previous path point and the next path point. In this case, we'd like to calculate
-			 * a new path. */
+			 * a new path from the character's current position. */
 			Vector3 straightPath = path [indexOfNextPathPoint] - path [indexOfNextPathPoint - 1];
 			Vector3 dirCharFromLastPoint = transform.position - path [indexOfNextPathPoint - 1];
 			float angleBetweenCharAndLastPoint = Vector3.Angle (straightPath, dirCharFromLastPoint);
