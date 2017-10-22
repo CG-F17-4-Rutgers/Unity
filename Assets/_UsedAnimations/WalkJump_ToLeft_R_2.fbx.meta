@@ -159,6 +159,7 @@ ModelImporter:
     400150: TongueBack
     400152: TongueTip
     7400000: WalkJump
+    7400002: WalkJumpP2
     9500000: //RootNode
   materials:
     importMaterials: 1
@@ -192,7 +193,7 @@ ModelImporter:
       firstFrame: 274
       lastFrame: 346
       wrapMode: 0
-      orientationOffsetY: 1.15
+      orientationOffsetY: 0.5
       level: 0
       cycleOffset: 0
       loop: 0
@@ -201,6 +202,34 @@ ModelImporter:
       loopBlend: 0
       loopBlendOrientation: 1
       loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 0
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 1
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 247
+    - serializedVersion: 16
+      name: WalkJumpP2
+      takeName: _5_a_U1_M_P_WalkJump_ToLeft_R_Fb_p0_No_0_2
+      firstFrame: 274
+      lastFrame: 346
+      wrapMode: 0
+      orientationOffsetY: 0.5
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
       loopBlendPositionXZ: 0
       keepOriginalOrientation: 0
       keepOriginalPositionY: 0

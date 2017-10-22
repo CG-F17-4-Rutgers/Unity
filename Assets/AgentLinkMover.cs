@@ -28,7 +28,7 @@ public class AgentLinkMover : MonoBehaviour {
          if (method == OffMeshLinkMoveMethod.NormalSpeed)
            yield return StartCoroutine (NormalSpeed (agent));
          else if (method == OffMeshLinkMoveMethod.Parabola)
-           yield return StartCoroutine (Parabola (agent, 2.0f, 0.75f));
+           yield return StartCoroutine (Parabola (agent, 2.0f, 1f));
          else if (method == OffMeshLinkMoveMethod.Curve)
            yield return StartCoroutine (Curve (agent, 0.5f));
          agent.CompleteOffMeshLink ();
@@ -42,8 +42,9 @@ public class AgentLinkMover : MonoBehaviour {
      Vector3 endPos = data.endPos + Vector3.up*agent.baseOffset;
      while (agent.transform.position != endPos) {
        agent.transform.position = Vector3.MoveTowards (agent.transform.position, endPos, agent.speed*Time.deltaTime);
-       yield return null;
+		yield return null;
      }
+
    }
 
    IEnumerator Parabola (NavMeshAgent agent, float height, float duration) {
