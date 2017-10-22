@@ -81,6 +81,10 @@ public class Locomotion_AnimPhysicsAgent : MonoBehaviour {
 				Debug.Log ("Stopping"); // You have reached your destination
 				anim.SetBool (m_HashMovingPara, false);
 				anim.SetBool (m_HashTurningPara, false);
+				anim.SetBool (m_HashRunningPara, false);
+				anim.SetFloat (m_HashHorizontalPara, 0.0f);
+				anim.SetFloat (m_HashVerticalPara, 0.0f);
+				anim.SetFloat (m_HashSpeedPara, 0.0f);
 				moving = false;
 			}
 			else
